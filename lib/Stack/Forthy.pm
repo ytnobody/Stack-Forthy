@@ -4,16 +4,38 @@ use strict;
 use warnings;
 use Carp;
 
-use version; our $VERSION = qv('0.0.1');
+our $VERSION = 0.01;
+our $DICT = require Stack::Forthy::Dict;
 
-# Other recommended modules (uncomment to use):
-#  use IO::Prompt;
-#  use Perl6::Export;
-#  use Perl6::Slurp;
-#  use Perl6::Say;
+sub new {
+    my $class = shift;
+    return bless {
+        stack => [],
+        dict => $DICT,
+    }, $class;
+}
 
-
-# Module implementation here
+sub process {
+    my ( $self, $str ) = @_;
+    my $res;
+    my @rtn;
+    my @cmdlist = split /\s/, $str;
+    for my $cmd ( @cmdlist ) {
+        if ( $self->{dict}->{$cmd} ) {
+            $res = $self->{dict}->{$cmd}->( $self->{stack} );
+            if ( defined $res ) {
+                push @rtn, $res;
+            }
+        }
+        elsif ( $cmd =~ /^\d+$/ ) {
+            push @{$self->{stack}}, $cmd;
+        }
+        else {
+            warn "undefined keyword '$cmd'";
+        }
+    }
+    return @rtn;
+}
 
 
 1; # Magic true value required at end of module
